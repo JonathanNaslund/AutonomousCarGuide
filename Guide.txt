@@ -1,0 +1,159 @@
+GUIDE DRAFT 1:
+
+Soldering:
+1:  Solder header pins to the BNO085 (one straight row, male pins facing down)
+2:  Solder male header pins to the ESP32 if not already pre-soldered
+3:  Solder wires or screw in terminal headers to the L298N OUT1/OUT2
+4:  If needed, solder input/output terminals on DC-DC converters
+
+Splitting battery wires for Y-connector
+1:  Strip wires
+2:  Twist battery wire + two outputs
+3:  Solder all together
+4:  Cover with heat shrink or tape
+5:  Repeat for both RED (+) and BLACK (–)
+
+
+LiPo to DC-DC converter
+1. Connect LiPo battery to DC-DC converter input:
+   - LiPo red wire (+)  → DC-DC IN+
+   - LiPo black wire (–) → DC-DC IN–
+2. Power on the DC-DC converter.
+3. Use a multimeter to measure voltage at DC-DC output terminals:
+   - OUT+ and OUT–
+4. Adjust the brass potentiometer on the DC-DC:
+   - Turn until the output reads exactly **5.0V**
+5. Power off the DC-DC converter after setting voltage.
+6. Connect DC-DC output to Raspberry Pi:
+   Option A: Power through GPIO header
+     - Rew wire - DC-DC OUT+ → Pi Pin 2 or Pin 4 (5V)
+     - Black wire - DC-DC OUT– → Pi GND (e.g., Pin 6 or Pin 9)
+
+
+ESP32 Setup
+1:  Flash ESP32 with firmware to connect to Wi-Fi and forward UART messages (Flash while not being connected to the pi)
+2:  Connect ESP32 to Pi via UART:
+          ESP32 TX → Pi RX (GPIO 15) (Pin 10)
+          ESP32 RX → Pi TX (GPIO 14) (Pin 8)
+          GND → GND (Pin 6)
+3:  Confirm ESP32 joins network
+
+
+Connect L298N to Raspberry Pi
+1:  Connect IN1 and IN2 to GPIO pins on Pi (GPIO 20 and 21)
+2:  Connect EN (enable) pin to a PWM-capable GPIO pin on Pi (e.g., GPIO 18)
+3:  Connect GND on L298N to Pi GND
+4:  Connect VCC (6–7V) from second DC-DC converter to L298N motor power
+5:  Connect OUT1/OUT2 to the motor terminals
+
+Or 
+    +12V → DC-DC Output +
+    GND  → Battery/Pi GND
+    OUT1 / OUT2 → Motor terminals
+    IN1  → Pi GPIO 20 (Pin 38)
+    IN2  → Pi GPIO 21 (Pin 40)
+    ENA  → Pi GPIO 18 (Pin 12)
+    GND  → Pi GND (again, shared) (Pin 20)
+
+
+Connect BNO085 to Raspberry Pi
+1:  Connect BNO085 using I²C:
+    VIN → 3.3V (Pin 1)
+    GND → Pi GND (Pin 14)
+    SDA → Pi GPIO 2 (Pin 3)
+    SCL → Pi GPIO 3 (Pin 5)
+2:  Ensure pull-up resistors (4.7kΩ) are in place if not onboard
+3:  Confirm I²C detection using i2cdetect -y 1
+
+
+Run the Pi Software
+1:  Put all the updated python files onto the microSD card
+2:  Start up the Pi with its new files
+
+
+
+
+
+
+GUIDE DRAFT 1:
+
+---
+
+### Soldering:
+1. Solder header pins to the BNO085 (one straight row, male pins facing down)
+2. Solder male header pins to the ESP32 if not already pre-soldered
+3. Solder wires or screw in terminal headers to the ESC + Servo if needed
+4. If needed, solder input/output terminals on DC-DC converters
+5. Solder header pins to the PCA9685 (for I2C, GND, V+, PWM channels)
+
+---
+
+### LiPo to DC-DC Converters
+1. Connect LiPo battery to DC-DC converter input:
+   - LiPo red wire (+)  → DC-DC IN+
+   - LiPo black wire (–) → DC-DC IN–
+2. Power on the DC-DC converter.
+3. Use a multimeter to measure voltage at DC-DC output terminals:
+   - OUT+ and OUT–
+4. Adjust the brass potentiometer on the DC-DC:
+   - Turn until the output reads exactly **5.0V**
+5. Power off the DC-DC converter after setting voltage.
+6. Connect DC-DC output to Raspberry Pi:
+   Power through GPIO header
+     - Red wire - DC-DC OUT+ → Pi Pin 2 or Pin 4 (5V)
+     - Black wire - DC-DC OUT– → Pi GND (Pin 9)
+
+
+---
+
+### ESP32 Setup
+1. Connect ESP32 to Pi via UART:
+   - ESP32 TX → Pi RX (GPIO 15) (Pin 10)
+   - ESP32 RX → Pi TX (GPIO 14) (Pin 8)
+   - GND → GND (Pin 6)
+2. Flash ESP32 with firmware to connect to Wi-Fi and forward UART messages
+3. Confirm ESP32 joins network
+
+---
+
+### Connect PCA9685 to Raspberry Pi and Power System
+1. SDA → Pi GPIO 2 (Pin 3)
+2. SCL → Pi GPIO 3 (Pin 5)
+3. VCC → Pi 3.3V (Pin 17)  
+   - Powers the PCA9685 logic (matches Pi's I²C voltage level)
+4. GND → Pi GND (pin 20)  
+   - Must be shared with ESC, servo, and DC-DC converter
+5. V+ → Regulated 5V output from DC-DC converter  
+   - Powers the ESC and steering servo (not through Pi)
+6. PWM Channel 0 → ESC signal pin (for throttle control)
+7. PWM Channel 1 → Steering servo signal pin
+8. If needed, connect ESC and servo power pins to the same 5V supply  
+   - PCA9685 sends PWM signal only — not power
+
+
+---
+
+### Connect BNO085 to Raspberry Pi
+1. Connect BNO085 using I²C:
+   - VIN → 3.3V (Pin 1)
+   - GND → Pi GND (Pin 14)
+   - SDA → Pi GPIO 2 (Pin 3)
+   - SCL → Pi GPIO 3 (Pin 5)
+2. Ensure pull-up resistors (4.7kΩ) are in place if not onboard
+3. Confirm I²C detection using:
+   ```bash
+   sudo apt install -y i2c-tools
+   i2cdetect -y 1
+   ```
+
+---
+
+### Run the Pi Software
+1. Put all the updated Python files onto the microSD card
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start up the Pi with its new files
+
+---
